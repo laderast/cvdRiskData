@@ -4,7 +4,7 @@ author: "Ted Laderas"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: > 
-  %\VignetteIndexEntry{bayesNet}
+  %\VignetteIndexEntry{"cvd_bayes_net"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
