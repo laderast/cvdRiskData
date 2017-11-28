@@ -1,0 +1,193 @@
+---
+title: "Bayesian Network for Synthetic Data"
+author: "Ted Laderas"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{BayesianNetworkSyntheticData}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+In this file, I start generating the synthetic data using the `gRain` package.
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(gRain)
+library(tidyverse)
+library(data.table)
+## load in data generation scripts
+library(cvdRiskData)
+```
+
+## Basic Synthetic Dataset
+
+The first variable we add is `age`. Then I add `smoking`, which is associated with hypertension. 
+
+```{r}
+yn <- c("N","Y")
+
+#this is the true conditional prob table for HTNtreat given HTN status
+#condHTNtreat <- t(HTNtreat/rowSums(HTNtreat))
+
+#I adjusted according to David's suggestions
+condHTNtreat <- t(matrix(nrow=2,c(100,0,40,60), byrow = TRUE, dimnames=list(yn,yn)))
+
+## Age probabilities are calculated from our cohort
+ageLevels <- c("0-20","20-40", "40-55", "55-70","70-90")
+
+ageProbMat <- read.csv(system.file("cpt", "age_probabilities.csv", package="cvdRiskData"))
+ageProb <- ageProbMat$Freq
+names(ageProb) <- ageProbMat$out
+
+ageProb
+
+a <- cptable(~age, values=ageProb*100, levels=ageLevels)
+
+## These conditional probabilities are derived from our cohort
+condHTNAgeprob <- read.csv(system.file("cpt", "age_htn_cpt.csv", package="cvdRiskData"), check.names = FALSE)
+
+## Here are the conditional age|htn probabilities
+condHTNAgeprob
+rownames(condHTNAgeprob) <- c(0,1)
+colnames(condHTNAgeprob) <- ageLevels
+
+## Compile our CPTs so far
+a.htn <- cptable(~htn+age, values=as.matrix(condHTNAgeprob), levels=yn)
+htn.treat <- cptable(~treat+htn, values=condHTNtreat, levels=yn)
+
+##Smoking|age CPT - peaks at 25% smoking for 55-70 category
+a.s <- cptable(~smoking+age, values=c(95,5,90,10,85,15,75,25,90,10),levels=yn)
+##Smoking htn, if you smoke, you have 67% prob of having hypertension
+s.h <- cptable(~htn+smoking, values=c(50,50,33,67))
+```
+
+Now we load in probabilities for race, which was calculated from our patient cohort.
+
+```{r}
+pRaceMat <- read.csv(system.file("cpt", "race_probabilities.csv", package="cvdRiskData"))
+
+pRace <- pRaceMat$Freq
+names(pRace) <- pRaceMat$Var1
+
+pRace
+
+race <- cptable(~race, values=pRace, levels=names(pRace))
+
+#These probabilities are estimated for US patients overall (from CDC report)
+bmiLevels <- c("15-18","18-25", "25-31","31+")
+bmiProb <- c(0.16, 0.68, 0.10, 0.06)
+
+bmi <- cptable(~bmi, values=bmiProb, levels=bmiLevels)
+
+#conditional CPT for BMI given race
+#these values were estimated from CDC report
+#If you are Black/AfAm or White, have a higher 
+#probability of being in a higher BMI category
+valuesBMI <- c(97, 3, 98, 1, 98, 2, 99, 1,
+            88, 12, 92,8, 92, 8, 96, 4,
+            55, 45, 70, 30, 70, 30, 85, 15,
+            20, 80, 33, 66, 33, 66, 65, 35)
+
+##t2d.race.bmi is a joint cpt: p(t2d|race,bmi)
+t2d.race.bmi <- cptable(~t2d|race:bmi, values=c(valuesBMI), levels=yn)
+#t2d.cvd <- cptable(~cvd|t2d, values=c(95, 5, 5, 95), levels= yn)
+
+##incidence of smoking is 15%
+smoking <- cptable(~smoking, values=c(85, 15), levels=yn)
+```
+
+## Selected SNPs
+
+These first 2 snps are on the same chromosome and so I will model them as having identical risk, and having both does not increase risk. I am limiting myself to the homozygous variants (excluding the heterozygous variants) in order to simplify things. I also only consider 6 genotypes overall.
+
+[Rs10757278](http://snpedia.com/index.php/Rs10757278) (Chr 9, 22124478). (A;A) 0.78 x risk of heart disease, (A;G) 1.3 x risk, (G;G) 1.6x risk for heart disease. Co-morbidity: diabetes
+
+[Rs1333049](http://snpedia.com/index.php/Rs1333049) (Chr 9, 22125504). (G;G) Normal (WT); (C;G) 1.5 increased risk; (C;C) 1.9x increased risk.
+
+These last 2 snps are on different chromosomes for the first. Again, limiting to the homozygous cases to simplify things.
+
+[Rs4665058](http://snpedia.com/index.php/Rs4665058), 4x risk if have two copies of the SNP (A;A), 2 X (A;C) and (C;C) - wild type. Chr 2, 159333698
+
+[rs8055236](https://www.snpedia.com/index.php/Rs8055236) (Chr 16, 83178793) (T;T) Normal (WT);
+(G;T) 1.9x risk, (G;G) 2.2x increased risk
+
+```{r}
+raceNames <- names(pRace)
+
+#Conversion table between aggregate genotype and SNP values
+snpLookup <- list("0000" = c("AA", "CC", "CC", "TT"),
+     "0001" = c("AA", "CC", "CC", "GG"),
+     "0010" = c("AA", "CC", "AA", "TT"),
+     "1100" = c("GG", "GG", "CC", "TT"),
+     "1110" = c("GG", "GG", "AA", "GG"),
+     "1111" = c("GG", "GG", "AA", "GG"))
+
+snpNames <- c("rs10757278", "rs1333049", "rs4665058", "rs8055236")
+
+snpLookup <- lapply(snpLookup, function(x) {names(x) <- c("rs10757278", "rs1333049", "rs4665058", "rs8055236"); return(x)})
+
+rs10757278race = matrix(nrow=2, byrow = TRUE, data=c(21, 24, 80, 30, 
+                                                     79, 76, 20, 70), 
+                        dimnames = list( c("AA","GG"),raceNames))/100
+
+r1 <- rs10757278race
+
+#p("AA"|race) = c(10, 10, 10, 10) 
+#p("CC"|race) = c(80,80,80,80)
+
+rs4665058race = 
+  matrix(nrow=2, data= c(10, 10, 10, 10, 90,90,90,90), byrow=TRUE, 
+         dimnames= list(c("AA","CC"), raceNames ))/100
+
+r2 <- rs4665058race
+
+#p("GG"|race) = c(62, 65, 20, 62)
+#P("TT"|race) = c(38, 35, 80, 38)
+
+rs8055236race = matrix(nrow=2, byrow=TRUE, data=c(62, 65, 20, 40, 
+                                                  38, 35, 80, 60),
+                       dimnames = list(c("GG","TT"), raceNames))/100
+r3 <- rs8055236race
+
+genotypes <- c("1111", "1110", "1100", "0010", "0001", "0000")
+
+probList <- list()
+probList[["0000"]] <- r1[2,] * r2[2,] * r3[2,]
+probList[["1100"]] <- r1[1,] * r2[2,] * r3[2,]
+probList[["1110"]] <- r1[1,] * r2[1,] * r3[2,]
+probList[["0010"]] <- r1[2,] * r2[1,] * r3[2,]
+probList[["0001"]] <- r1[2,] * r2[2,] * r3[1,]
+probList[["1111"]] <- r1[1,] * r2[1,] * r3[1,]
+
+cptgenoRace <- do.call(rbind,probList)
+cptgenoRace <- cptgenoRace[genotypes,]
+
+race.genotype <- cptable(~genotype|race, values=cptgenoRace, levels=genotypes, normalize=TRUE)
+
+##Gender is unbalanced
+gender <- cptable(~gender, c(45,55), levels=c("M","F"))
+
+##Two SNPs are associated with higher cholesterol
+tcholStates <- c("<160", "160-199", "200-239","240+")
+genotype.tchol <- cptable(~tchol|genotype, 
+                          values = c(5,10,30,55,
+                                     10,20,30,40,
+                                     15,20,45,30,
+                                     15,20,45,30,
+                                     30,60,5,5,
+                                     30,60,5,5), levels=tcholStates)
+```
+
+Finally, we compile our Bayesian Network and save it.
+
+```{r}
+plist <- compileCPT(list(a, a.htn, htn.treat, smoking, s.h, race,
+                         bmi, t2d.race.bmi, race.genotype, 
+                         genotype.tchol,
+                         gender))
+
+cvd_bayes_net <- compile(grain(plist))
+devtools::use_data(cvd_bayes_net, overwrite = TRUE)
+```
+
