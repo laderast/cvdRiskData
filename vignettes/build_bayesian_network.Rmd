@@ -3,13 +3,13 @@ title: "Bayesian Network for Synthetic Data"
 author: "Ted Laderas"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{BayesianNetworkSyntheticData}
+vignette: > 
+  %\VignetteIndexEntry{bayesNet}
   %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
+  %\VignetteEncoding{UTF-8}
 ---
 
-In this file, I start generating the synthetic data using the `gRain` package.
+In this file, I start generating the Bayesian Network from our data using the `gRain` package.
 
 ```{r setup, include=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
