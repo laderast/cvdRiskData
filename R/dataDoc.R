@@ -7,7 +7,7 @@
 #' @usage data(cvd_patient)
 #' @format
 #'   a data frame with variables related to cvd risk.
-#'   \itemize{
+#'   \describe{
 #'     \item{\code{patientID}} {Patient Identifier. Unique patient identifier for Health Hospital University.
 #'     HHUID + 8 digit code}
 #'     \item{\code{age}} {Patient Age Category. Age category of patient. string of age ranges.
@@ -37,3 +37,4 @@
 #'
 #' #look at summary of data
 #' summary(cvd_patient)
+"cvd_patient"
