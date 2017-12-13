@@ -11,7 +11,7 @@ vignette: >
 
 ## Building Synthetic Data from our Network
 
-Here we load in our Bayesian Network that we built in `build_bayesian_network.Rmd`. Then we use convenience functions to 
+Here we load in our Bayesian Network that we built in `build_bayesian_network.Rmd`. Then we use convenience functions to transform categorical data to continuous where possible.
 
 ```{r}
 num_patients <- 1000

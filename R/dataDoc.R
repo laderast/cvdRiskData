@@ -4,9 +4,11 @@
 #'
 #' @docType data
 #' @name cvd_patient
+#' @aliases cvd_geno
 #' @usage data(cvd_patient)
 #' @format
-#'   a data frame with variables related to cvd risk.
+#'   a data frame with variables related to cvd risk. \code{cvd_genodata} is a smaller subset
+#'   of the data with a few genetic cohorts.
 #'   \describe{
 #'     \item{\code{patientID}} {Patient Identifier. Unique patient identifier for Health Hospital University.
 #'     HHUID + 8 digit code}
@@ -25,6 +27,14 @@
 #'     \item{\code{cvd}} {Cardiovascular disesase based on extraction from patient billing codes. Y/N}
 #'   }
 #'
+#' There is a subset of patients that include genetic covariate information called \code{cvd_genodata}.
+#'
+#'  \describe{
+#'   \item{\code{rs10757278}} {SNP data}
+#'   \item{\code{rs1333049}} {SNP data}
+#'   \item{\code{rs4665058}} {SNP data}
+#'   \item{\code{rs8055236}}
+#'  }
 #' @details
 #'
 #'

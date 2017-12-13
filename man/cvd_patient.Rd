@@ -3,8 +3,9 @@
 \docType{data}
 \name{cvd_patient}
 \alias{cvd_patient}
+\alias{cvd_geno}
 \title{CVD risk synthetic dataset}
-\format{An object of class \code{data.frame} with 63780 rows and 13 columns.}
+\format{An object of class \code{data.frame} with 425195 rows and 13 columns.}
 \source{
 
 }
