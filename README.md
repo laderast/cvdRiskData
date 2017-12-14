@@ -2,6 +2,8 @@
 
 Synthetic Cardiovascular Risk Dataset and Data generation script available as an R package. 
 
+View the related course materials here: https://github.com/laderast/cvdNight1 and https://github.com/laderast/cvdNight2
+
 Explore the dataset here: https://tladeras.shinyapps.io/cvdnight1/
 
 More information about the generation of this dataset 
