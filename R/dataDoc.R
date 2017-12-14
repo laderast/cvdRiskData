@@ -1,50 +1,89 @@
 #' CVD risk synthetic dataset
 #'
 #' A synthetic dataset for predicting cardiovascular risk in patient cohorts.
-#'
-#' @docType data
-#' @name cvd_patient
-#' @aliases cvd_geno
-#' @usage data(cvd_patient)
-#' @format
-#'   a data frame with variables related to cvd risk. \code{cvd_genodata} is a smaller subset
-#'   of the data with a few genetic cohorts.
-#'   \describe{
-#'     \item{\code{patientID}} {Patient Identifier. Unique patient identifier for Health Hospital University.
-#'     HHUID + 8 digit code}
-#'     \item{\code{age}} {Patient Age Category. Age category of patient. string of age ranges.
-#` Note that upper bound is not inclusive}
-#'     \item{\code{htn}} {Does patient have hypertension? Threshold systolic blood pressure is 150. Y/N}
-#'     \item{\code{treat}} {Is patient receiving hypertension treatment? Y/N}
-#'     \item{\code{smoking}} {Y/N based on threshold of pack years: 10}
-#'     \item{\code{race}} {Race based on self-defined question in survey. AmInd (american indian),
-#'     Asian/PI (asian/pacific islander), Black/AfAm (Black/African American), White}
-#'     \item{\code{gender}} {Gender of patient. Male, Female, NA means that patient did not want gender recorded.}
-#'     \item{\code{t2d}} {Whether patient has Type 2 diabetes. Y/N.}
-#'     \item{\code{numAge}} {numerical age in years.}
-#'     \item{\code{bmi}} {Body Mass Index of Patient. kg/m^2}
-#'     \item{\code{sbp}} {Systolic Blood Pressure in mm/Hg}
-#'     \item{\code{cvd}} {Cardiovascular disesase based on extraction from patient billing codes. Y/N}
+#' 
+#'   \itemize{
+#'     \item patientID Patient Identifier. Unique patient identifier for Health Hospital University.
+#'     HHUID + 8 digit code
+#'     \item age Patient Age Category. Age category of patient. string of age ranges.
+#` Note that upper bound is not inclusive
+#'     \item htn Does patient have hypertension? Threshold systolic blood pressure is 150. Y/N
+#'     \item treat Is patient receiving hypertension treatment? Y/N
+#'     \item smoking Y/N based on threshold of pack years: 10
+#'     \item race Race based on self-defined question in survey. AmInd (american indian),
+#'     Asian/PI (asian/pacific islander), Black/AfAm (Black/African American), White
+#'     \item gender Gender of patient. Male, Female, NA means that patient did not want gender recorded.
+#'     \item t2d Whether patient has Type 2 diabetes. Y/N.
+#'     \item numAge numerical age in years.
+#'     \item bmi Body Mass Index of Patient. kg/m^2
+#'     \item sbp Systolic Blood Pressure in mm/Hg
+#'     \item cvd Cardiovascular disesase based on extraction from patient billing codes. Y/N
 #'   }
 #'
 #' There is a subset of patients that include genetic covariate information called \code{cvd_genodata}.
 #'
-#'  \describe{
-#'   \item{\code{rs10757278}} {SNP data}
-#'   \item{\code{rs1333049}} {SNP data}
-#'   \item{\code{rs4665058}} {SNP data}
-#'   \item{\code{rs8055236}}
+#'  \itemize{
+#'   \item rs10757278 SNP data
+#'   \item rs1333049 SNP data
+#'   \item rs4665058 SNP data
+#'   \item rs8055236 SNP data
 #'  }
-#' @details
 #'
-#'
-#' @source
-#'
-#'
-#'
+#' @docType data
+#' @name cvd_patient
+#' @aliases cvd_genodata
+#' @usage data(cvd_patient)
+#' @format
+#'   a data frame with variables related to cvd risk. \code{cvd_genodata} is a smaller subset
+#'   of the data with a few genetic cohorts.
 #' @examples
+#' #load full dataset
 #' data(cvd_patient)
 #'
 #' #look at summary of data
 #' summary(cvd_patient)
+#' 
+#' #load genotype dataset
+#' data(cvd_genodata)
+#' summary(cvd_genodata)
 "cvd_patient"
+
+#' CVD risk synthetic dataset
+#'
+#' A bayesian network for generating categorical synthetic data for assessing cardiovascular risk. 
+#' Variable types are as follows:
+#' 
+#'   \itemize{
+#'     \item age. Patient Age Category. Age category of patient. string of age ranges.
+#` Note that upper bound is not inclusive}
+#'     \item htn. Does patient have hypertension? Threshold systolic blood pressure is 150. Y/N
+#'     \item treat Is patient receiving hypertension treatment? Y/N
+#'     \item smoking Y/N based on threshold of pack years: 10
+#'     \item race Race based on self-defined question in survey. AmInd (american indian),
+#'     Asian/PI (asian/pacific islander), Black/AfAm (Black/African American), White
+#'     \item gender Gender of patient. Male, Female, NA means that patient did not want gender recorded.
+#'     \item t2d Whether patient has Type 2 diabetes. Y/N.
+#'     \item bmi Body Mass Index of Patient. kg/m^2
+#'     \item sbp Systolic Blood Pressure in mm/Hg
+#'   \item rs10757278 SNP data. Associated with race and total cholesterol.
+#'   \item rs1333049 SNP data. Associated with race and total cholesterol. Always co-occurs with rs10757278.
+#'   \item rs4665058 SNP data. Associated with race and total cholesterol.
+#'   \item rs8055236 SNP data. Variant is associated with increased risk.
+#'   }
+#' Note that not all covariates (including cardiovascular risk) were generated by the dataset.
+#' Further details about how to generate the entire dataset from this network can be found from
+#' \code{generate_data_from_network} in the vignettes folder.
+#' @docType data
+#' @name cvd_bayes_net
+#' @usage data(cvd_bayes_net)
+#' @format
+#'   A Bayesian Network of class \code{CPTgrain} using the \code{gRain} package for representing the data.
+#' @source
+#' @examples
+#' library(gRain)
+#' data(cvd_bayes_net)
+#'
+#' #generate categorical data for 1000 patients
+#' testData <- simulate(cvd_bayes_net, nsim =1000)
+#' summary(testData)
+"cvd_bayes_net"
