@@ -2,6 +2,8 @@
 
 There are six versions of the datasets in the folder. 
 
+`dataDictionary.pdf` has information for all of the covariates - we use this in an exercise to understand the datasets.
+
 `full` means the full patient cohort (~500K patients). 
 
 + `fullPatientData.csv` - the entire patient cohort
